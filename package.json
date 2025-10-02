@@ -1,0 +1,29 @@
+{
+  "name": "umc-9th-hogak",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "DSWU-UMC-9th 리포지토리",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node src/index.js",
+    "dev": "nodemon --exec node src/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DSWU-UMC-9th/UMC-9th-Hogak.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/DSWU-UMC-9th/UMC-9th-Hogak/issues"
+  },
+  "homepage": "https://github.com/DSWU-UMC-9th/UMC-9th-Hogak#readme",
+  "dependencies": {
+    "dotenv": "^17.2.3",
+    "express": "^5.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  }
+}
