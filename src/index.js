@@ -1,13 +1,16 @@
-import dotenv from "dotenv";
-// const express = require('express')  // -> CommonJS
+//import dotenv from "dotenv";
 import express from 'express';         // -> ES Module
 import cors from "cors";
 import { handleUserSignUp } from "./controllers/user.controller.js";
 import { handleAddStore } from "./controllers/store.controller.js";
 import { handleAddReview } from "./controllers/review.controller.js";
 import { handleChallengeMission } from "./controllers/mission.controller.js";
+import { handleListStoreReviews } from "./controllers/store.controller.js";
+import { handleListStoreMissions } from "./controllers/mission.controller.js";
+import { handleGetUserOngoingMissions } from './controllers/mission.controller.js';
 
-dotenv.config();
+
+//dotenv.config();
 
 const app = express()
 const port = process.env.PORT;
@@ -23,8 +26,11 @@ app.get('/', (req, res) => {
 
 app.post("/api/v1/users/signup", handleUserSignUp);
 app.post("/api/v1/stores/add", handleAddStore);
-app.post("/api/v1/stores/:storeId/reviews", handleAddReview);
+app.get("/api/v1/stores/:storeId/reviews", handleListStoreReviews);
+app.post("/api/v1/stores/:storeId/add-review", handleAddReview);
 app.post("/api/v1/stores/:storeId/missions/:missionId/challenge", handleChallengeMission);
+app.get("/api/v1/stores/:storeId/missions", handleListStoreMissions);
+app.get("/api/v1/users/:userId/missions", handleGetUserOngoingMissions);
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`)

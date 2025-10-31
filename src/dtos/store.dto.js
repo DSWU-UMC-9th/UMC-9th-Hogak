@@ -10,13 +10,21 @@ export const bodyToStore = (body) => {
 
 // DB에서 가져온 store → 응답 형태로 변환
 export const responseFromStore = ({ store }) => {
-  const s = Array.isArray(store) ? store[0] : store;
-
   return {
-    id: s.id,
-    regionId: s.region_id,
-    name: s.name,
-    address: s.address,
-    score: s.score
+    id: store.id,
+    regionId: store.regionId,
+    regionName: store.region?.name || null,
+    name: store.name,
+    address: store.address,
+    score: store.score,
+  };
+};
+
+export const responseFromReviews = (reviews) => {
+  return {
+    data: reviews,
+    pagination: {
+      cursor: reviews.length ? reviews[reviews.length - 1].id : null,
+    },
   };
 };

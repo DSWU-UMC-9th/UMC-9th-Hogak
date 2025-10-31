@@ -13,23 +13,14 @@ export const bodyToUser = (body) => {
   };
 };
 
-export const responseFromUser = ({user, preferences}) => {
-  
-  const u = Array.isArray(user) ? user[0] : user;
+export const responseFromUser = ({ user, preferences }) => {
+  const preferFoods = preferences.map(
+    (preference) => preference.foodCategory.name
+  );
 
   return {
-    id: u.id,
-    email: u.email,
-    name: u.name,
-    gender: u.gender,
-    birth: u.birth,
-    address: u.address,
-    detailAddress: u.detailAddress,
-    phoneNumber: u.phoneNumber,
-    preferences: preferences.map((p) => ({
-      id: p.id,
-      foodCategoryId: p.food_category_id,
-      name: p.name,
-    })),
+    email: user.email,
+    name: user.name,
+    preferCategory: preferFoods,
   };
-}
+};

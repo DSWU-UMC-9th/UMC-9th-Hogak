@@ -1,10 +1,19 @@
-import { pool } from "../db.config.js";
+import { prisma } from "../db.config.js";
 
+// 리뷰 추가
 export const insertReview = async ({ storeId, userId, body, score }) => {
-  const [result] = await pool.query(
-    "INSERT INTO review (store_id, user_id, body, score, created_at, updated_at) VALUES (?, ?, ?, ?, NOW(), NOW());",
-    [storeId, userId, body, score]
-  );
+  try {
+    const review = await prisma.review.create({
+      data: {
+        storeId: Number(storeId),
+        userId: Number(userId),
+        body,
+        score,
+      },
+    });
 
-  return { id: result.insertId, storeId, userId, body, score };
+    return review;
+  } catch (err) {
+    throw new Error(`리뷰 추가 중 오류: ${err.message}`);
+  }
 };

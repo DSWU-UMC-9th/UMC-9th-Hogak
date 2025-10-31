@@ -21,9 +21,7 @@ export const handleAddReview = async (req, res, next) => {
 
     res.status(StatusCodes.CREATED).json({ result });
   } catch (err) {
-    console.error(err);
-    res
-      .status(StatusCodes.INTERNAL_SERVER_ERROR)
-      .json({ message: err.message });
+    console.error("리뷰 추가 오류:", err);
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: err.message });
   }
 };

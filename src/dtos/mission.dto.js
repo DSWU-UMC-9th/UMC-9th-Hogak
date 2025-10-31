@@ -1,42 +1,64 @@
-export const bodyToMission = (body) => {
-  return {
-    storeId: body.storeId,
-    title: body.title,
-    missionSpec: body.missionSpec,
-    reward: body.reward,
-    deadline: body.deadline,
-  };
-};
+export const bodyToMission = (body) => ({
+  storeId: Number(body.storeId),
+  title: body.title,
+  missionSpec: body.missionSpec,
+  reward: Number(body.reward) || 0,
+  deadline: body.deadline ? new Date(body.deadline) : null,
+});
 
-export const responseFromMission = ({ mission }) => {
-  const m = Array.isArray(mission) ? mission[0] : mission;
-  return {
-    id: m.id,
-    storeId: m.store_id,
-    title: m.title,
-    missionSpec: m.mission_spec,
-    reward: m.reward,
-    deadline: m.deadline,
-    createdAt: m.created_at,
-  };
-};
+export const responseFromMission = ({ mission }) => ({
+  id: mission.id,
+  storeId: mission.storeId,
+  title: mission.title,
+  missionSpec: mission.missionSpec,
+  reward: mission.reward,
+  deadline: mission.deadline,
+  createdAt: mission.createdAt,
+});
 
-export const bodyToChallenge = (body) => {
-  // challenge API에서는 userId만 body로 받는다고 가정
-  return {
-    userId: body.userId,
-  };
-};
+export const bodyToChallenge = (body) => ({
+  userId: Number(body.userId),
+});
 
 export const responseFromUserMission = ({ userMission }) => {
-  const um = Array.isArray(userMission) ? userMission[0] : userMission;
-  if (!um) return null;
+  if (!userMission) return null;
   return {
-    id: um.id,
-    userId: um.user_id,
-    missionId: um.mission_id,
-    status: um.status,
-    progress: um.progress,
-    createdAt: um.created_at,
+    id: userMission.id,
+    userId: userMission.userId,
+    missionId: userMission.missionId,
+    status: userMission.status,
+    progress: userMission.progress,
+    createdAt: userMission.createdAt,
+  };
+};
+
+export const responseFromMissions = (missions) => {
+  // missions: 배열
+  const data = (missions || []).map((m) => responseFromMission({ mission: m }));
+  return {
+    data,
+    pagination: {
+      cursor: data.length ? data[data.length - 1].id : null,
+      count: data.length,
+    },
+  };
+};
+
+export const responseFromUserMissionList = (userMissions) => {
+  return {
+    missions: userMissions.map((um) => ({
+      missionId: um.missionId,
+      title: um.mission.title,
+      missionSpec: um.mission.missionSpec,
+      reward: um.mission.reward,
+      deadline: um.mission.deadline,
+      progress: um.progress,
+      status: um.status,
+      store: {
+        id: um.mission.store.id,
+        name: um.mission.store.name,
+        address: um.mission.store.address
+      }
+    }))
   };
 };

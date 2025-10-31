@@ -1,51 +1,47 @@
-import { pool } from "../db.config.js";
+import { prisma } from "../db.config.js";
 
 // 가게 추가
-export const addStore = async (data) => {
-  const conn = await pool.getConnection();
-
+export const addStoreRepo = async (data) => {
   try {
-    const [result] = await pool.query(
-      `INSERT INTO store 
-      (region_id, name, address, score)
-      VALUES (?, ?, ?, ?);`,
-      [
-        data.regionId,
-        data.name,
-        data.address,
-        data.score
-      ]
-    );
+    const store = await prisma.store.create({
+      data: {
+        regionId: data.regionId,
+        name: data.name,
+        address: data.address,
+        score: data.score ?? 0,
+      },
+    });
 
-    return result.insertId;
+    return store.id;
   } catch (err) {
-    throw new Error(`가게 추가 중 오류가 발생했습니다. (${err})`);
-  } finally {
-    conn.release();
+    throw new Error(`가게 추가 중 오류가 발생했습니다. (${err.message})`);
   }
 };
 
 // 가게 상세 조회
 export const getStoreById = async (storeId) => {
-  const conn = await pool.getConnection();
-
   try {
-    const [store] = await pool.query(
-      `SELECT s.*, r.name AS region_name 
-       FROM store s
-       JOIN region r ON s.region_id = r.id
-       WHERE s.id = ?;`,
-      [storeId]
-    );
+    const store = await prisma.store.findUnique({
+      where: { id: storeId },
+      include: {
+        region: true, // ✅ region 테이블과 관계를 맺고 있다면 이렇게 join 가능
+      },
+    });
 
-    if (store.length == 0) {
-      return null;
-    }
-
+    if (!store) return null;
     return store;
   } catch (err) {
-    throw new Error(`가게 조회 중 오류가 발생했습니다. (${err})`);
-  } finally {
-    conn.release();
+    throw new Error(`가게 조회 중 오류가 발생했습니다. (${err.message})`);
   }
+};
+
+export const getAllStoreReviews = async (storeId, cursor) => {
+  const reviews = await prisma.review.findMany({
+    select: { id: true, content: true, store: true, user: true },
+    where: { storeId: storeId, id: { gt: cursor } },
+    orderBy: { id: "asc" },
+    take: 5,
+  });
+
+  return reviews;
 };
