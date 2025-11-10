@@ -19,7 +19,7 @@ export const handleAddReview = async (req, res, next) => {
       score: rating,
     });
 
-    res.status(StatusCodes.CREATED).json({ result });
+    res.status(StatusCodes.CREATED).success({ result });
   } catch (err) {
     console.error("리뷰 추가 오류:", err);
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: err.message });
