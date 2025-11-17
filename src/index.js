@@ -1,4 +1,5 @@
-//import dotenv from "dotenv";
+import swaggerAutogen from "swagger-autogen";
+import swaggerUiExpress from "swagger-ui-express";
 import express from 'express';         // -> ES Module
 import cors from "cors";
 import morgan from 'morgan';
@@ -12,13 +13,15 @@ import { handleListStoreMissions } from "./controllers/mission.controller.js";
 import { handleGetUserOngoingMissions } from './controllers/mission.controller.js';
 
 
-//dotenv.config();
-
 const app = express()
 const port = process.env.PORT;
 
 app.use(morgan('dev'));  // 로그 포맷: dev
 app.use(cookieParser()); 
+app.use(cors());                            // cors 방식 허용
+app.use(express.static('public'));          // 정적 파일 접근
+app.use(express.json());                    // request의 본문을 json으로 해석할 수 있도록 함 (JSON 형태의 요청 body를 파싱하기 위함)
+app.use(express.urlencoded({ extended: false })); // 단순 객체 문자열 형태로 본문 데이터 해석
 
 app.use((req, res, next) => {
   res.success = (success) => {
@@ -27,7 +30,7 @@ app.use((req, res, next) => {
 
   res.error = ({ errorCode = "unknown", reason = null, data = null }) => {
     return res.json({
-      resultType: "FAIL",
+      resultType: "FAIL",  
       error: { errorCode, reason, data },
       success: null,
     });
@@ -35,11 +38,6 @@ app.use((req, res, next) => {
 
   next();
 });
-
-app.use(cors());                            // cors 방식 허용
-app.use(express.static('public'));          // 정적 파일 접근
-app.use(express.json());                    // request의 본문을 json으로 해석할 수 있도록 함 (JSON 형태의 요청 body를 파싱하기 위함)
-app.use(express.urlencoded({ extended: false })); // 단순 객체 문자열 형태로 본문 데이터 해석
 
 app.get('/', (req, res) => {
   res.send('Hello World!')
@@ -52,6 +50,37 @@ app.post("/api/v1/stores/:storeId/add-review", handleAddReview);
 app.post("/api/v1/stores/:storeId/missions/:missionId/challenge", handleChallengeMission);
 app.get("/api/v1/stores/:storeId/missions", handleListStoreMissions);
 app.get("/api/v1/users/:userId/missions", handleGetUserOngoingMissions);
+
+app.use(
+  "/docs",
+  swaggerUiExpress.serve,
+  swaggerUiExpress.setup({}, {
+    swaggerOptions: {
+      url: "/openapi.json",
+    },
+  })
+);
+
+app.get("/openapi.json", async (req, res, next) => {
+  // #swagger.ignore = true
+  const options = {
+    openapi: "3.0.0",
+    disableLogs: true,
+    writeOutputFile: false,
+  };
+  const outputFile = "/dev/null"; // 파일 출력은 사용하지 않습니다.
+  const routes = ["./src/index.js"];
+  const doc = {
+    info: {
+      title: "UMC 9th",
+      description: "UMC 9th Node.js 테스트 프로젝트입니다.",
+    },
+    host: "localhost:3000",
+  };
+
+  const result = await swaggerAutogen(options)(outputFile, routes, doc);
+  res.json(result ? result.data : null);
+});
 
 app.use((err, req, res, next) => {
   if (res.headersSent) {

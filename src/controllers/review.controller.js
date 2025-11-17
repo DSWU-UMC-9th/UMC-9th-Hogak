@@ -2,6 +2,7 @@ import { addReview } from "../services/review.service.js";
 import { StatusCodes } from "http-status-codes";
 
 export const handleAddReview = async (req, res, next) => {
+  // #swagger.ignore = true
   try {
     const storeId = req.params.storeId;
     const { userId, content, rating } = req.body;

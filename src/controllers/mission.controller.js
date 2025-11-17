@@ -5,6 +5,7 @@ import { listStoreMissions } from "../services/mission.service.js";
 import { getOngoingMissionsByUser } from "../services/mission.service.js";
 
 export const handleChallengeMission = async (req, res, next) => {
+  // #swagger.ignore = true
   try {
     const storeId = req.params.storeId;
     const missionId = req.params.missionId;
@@ -32,6 +33,7 @@ export const handleChallengeMission = async (req, res, next) => {
 };
 
 export const handleListStoreMissions = async (req, res, next) => {
+  // #swagger.ignore = true
   try {
     const storeId = Number(req.params.storeId);
     if (Number.isNaN(storeId)) {
@@ -55,6 +57,7 @@ export const handleListStoreMissions = async (req, res, next) => {
 };
 
 export const handleGetUserOngoingMissions = async (req, res) => {
+  // #swagger.ignore = true
   console.log("진행 중인 미션 목록 요청:", req.params);
 
   try {
