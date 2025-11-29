@@ -4,6 +4,10 @@ import express from 'express';         // -> ES Module
 import cors from "cors";
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
+import passport from "passport";
+import { googleStrategy, jwtStrategy } from "./auth.config.js";
+import { prisma } from "./db.config.js";
+import dotenv from "dotenv";
 import { handleUserSignUp } from "./controllers/user.controller.js";
 import { handleAddStore } from "./controllers/store.controller.js";
 import { handleAddReview } from "./controllers/review.controller.js";
@@ -12,6 +16,9 @@ import { handleListStoreReviews } from "./controllers/store.controller.js";
 import { handleListStoreMissions } from "./controllers/mission.controller.js";
 import { handleGetUserOngoingMissions } from './controllers/mission.controller.js';
 
+dotenv.config();
+
+passport.use(googleStrategy);
 
 const app = express()
 const port = process.env.PORT;
@@ -22,6 +29,9 @@ app.use(cors());                            // cors 방식 허용
 app.use(express.static('public'));          // 정적 파일 접근
 app.use(express.json());                    // request의 본문을 json으로 해석할 수 있도록 함 (JSON 형태의 요청 body를 파싱하기 위함)
 app.use(express.urlencoded({ extended: false })); // 단순 객체 문자열 형태로 본문 데이터 해석
+app.use(passport.initialize());
+passport.use(googleStrategy);
+passport.use(jwtStrategy); 
 
 app.use((req, res, next) => {
   res.success = (success) => {
@@ -46,10 +56,19 @@ app.get('/', (req, res) => {
 app.post("/api/v1/users/signup", handleUserSignUp);
 app.post("/api/v1/stores/add", handleAddStore);
 app.get("/api/v1/stores/:storeId/reviews", handleListStoreReviews);
-app.post("/api/v1/stores/:storeId/add-review", handleAddReview);
+app.post("/api/v1/stores/:storeId/add-review", passport.authenticate("jwt", { session: false }), handleAddReview);
 app.post("/api/v1/stores/:storeId/missions/:missionId/challenge", handleChallengeMission);
 app.get("/api/v1/stores/:storeId/missions", handleListStoreMissions);
-app.get("/api/v1/users/:userId/missions", handleGetUserOngoingMissions);
+app.get("/api/v1/users/:userId/missions", passport.authenticate("jwt", { session: false }), handleGetUserOngoingMissions);
+
+const isLogin = passport.authenticate('jwt', { session: false });
+
+app.get('/mypage', isLogin, (req, res) => {
+  res.status(200).success({
+    message: `인증 성공! ${req.user.name}님의 마이페이지입니다.`,
+    user: req.user,
+  });
+});
 
 app.use(
   "/docs",
@@ -81,6 +100,31 @@ app.get("/openapi.json", async (req, res, next) => {
   const result = await swaggerAutogen(options)(outputFile, routes, doc);
   res.json(result ? result.data : null);
 });
+
+app.get("/oauth2/login/google", 
+  passport.authenticate("google", { 
+    session: false 
+  })
+);
+app.get(
+  "/oauth2/callback/google",
+  passport.authenticate("google", {
+	  session: false,
+    failureRedirect: "/login-failed",
+  }),
+  (req, res) => {
+    const tokens = req.user; 
+
+    res.status(200).json({
+      resultType: "SUCCESS",
+      error: null,
+      success: {
+          message: "Google 로그인 성공!",
+          tokens: tokens, // { "accessToken": "...", "refreshToken": "..." }
+      }
+    });
+  }
+);
 
 app.use((err, req, res, next) => {
   if (res.headersSent) {
